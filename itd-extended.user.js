@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ITD Extended Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1.3
+// @version      1.1.4
 // @author       Kirill
 // @description  Extended client for ITD social network with modular system
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
@@ -30,13 +30,25 @@
       if (url.includes("/api/users/") && !url.includes("/posts") && !url.includes("/media")) {
         const clone = response.clone();
         clone.json().then((data) => {
-          if (data && data.username) {
-            callback("profile_loaded", data);
-          }
+          if (data && data.username) callback("profile_loaded", data);
         }).catch(() => {
         });
       }
       return response;
+    };
+    const rawOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function() {
+      this.addEventListener("load", function() {
+        const url = this.responseURL;
+        if (url.includes("/api/users/") && !url.includes("/posts") && !url.includes("/media")) {
+          try {
+            const data = JSON.parse(this.responseText);
+            if (data && data.username) callback("profile_loaded", data);
+          } catch (e) {
+          }
+        }
+      });
+      rawOpen.apply(this, arguments);
     };
   }
   const Settings = {
