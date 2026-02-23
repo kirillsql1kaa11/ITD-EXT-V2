@@ -21,17 +21,15 @@ export default defineConfig({
                 ],
                 updateURL: 'https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js',
                 downloadURL: 'https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js',
+            },
+            build: {
+                // Жестко задаем имя файла, чтобы Vite не добавлял имя проекта
+                fileName: 'itd-extended.user.js'
             }
         }),
     ],
     build: {
         outDir: './',
-        emptyOutDir: false,
-        rollupOptions: {
-            output: {
-                entryFileNames: 'itd-extended.user.js',
-                assetFileNames: 'itd-extended.[ext]',
-            },
-        },
-    },
+        emptyOutDir: false
+    }
 });
