@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ITD Extended Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1.1
+// @version      1.1.2
 // @author       Kirill
 // @description  Extended client for ITD social network with modular system
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
