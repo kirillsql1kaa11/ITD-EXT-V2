@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ITD Extended Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1.7
+// @version      1.1.9
 // @author       Kirill
 // @description  Extended client for ITD social network with modular system
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
@@ -24,18 +24,22 @@
     window.fetch = async (...args) => {
       const response = await originFetch(...args);
       let url = "";
-      if (typeof args[0] === "string") url = args[0];
-      else if (args[0] instanceof Request) url = args[0].url;
-      else if (args[0] instanceof URL) url = args[0].href;
-      if (url.includes("/api/")) {
-        console.log("[ITD-DEBUG] API Fetch:", url);
+      try {
+        if (typeof args[0] === "string") url = args[0];
+        else if (args[0] instanceof Request) url = args[0].url;
+        else if (args[0] instanceof URL) url = args[0].href;
+      } catch (e) {
+        return response;
       }
       if (url.includes("/api/users/") && !url.includes("/posts") && !url.includes("/media")) {
+        console.log("[ITD-EXT] Caught Profile Request:", url);
         const clone = response.clone();
         clone.json().then((data) => {
-          if (data && data.username) callback("profile_loaded", data);
-        }).catch(() => {
-        });
+          if (data && (data.username || data.postsCount !== void 0)) {
+            console.log("[ITD-EXT] Data parsed successfully!");
+            callback("profile_loaded", data);
+          }
+        }).catch((err) => console.error("[ITD-EXT] JSON Parse error:", err));
       }
       return response;
     };
@@ -43,14 +47,15 @@
     XMLHttpRequest.prototype.open = function() {
       this.addEventListener("load", function() {
         const url = this.responseURL;
-        if (url.includes("/api/")) {
-          console.log("[ITD-DEBUG] API XHR:", url);
-        }
         if (url.includes("/api/users/") && !url.includes("/posts") && !url.includes("/media")) {
+          console.log("[ITD-EXT] Caught Profile XHR:", url);
           try {
             const data = JSON.parse(this.responseText);
-            if (data && data.username) callback("profile_loaded", data);
+            if (data && (data.username || data.postsCount !== void 0)) {
+              callback("profile_loaded", data);
+            }
           } catch (e) {
+            console.error("[ITD-EXT] XHR Parse error:", e);
           }
         }
       });
@@ -150,21 +155,29 @@
     },
     id: "itdex-main-button"
   };
-  console.log("[ITD-EXT] v1.1.7: Script starting");
-  initInterceptor((event, data) => {
-    if (event === "profile_loaded") {
-      console.log("[ITD-EXT] API Profile catch!", data.username);
-      profileData = data;
-      runModules(data);
-    }
-  });
+  console.log("[ITD-EXT] v1.1.9: Запуск скрипта...");
+  try {
+    initInterceptor((event, data) => {
+      if (event === "profile_loaded") {
+        console.log("[ITD-EXT] Профиль успешно перехвачен:", data.username);
+        profileData = data;
+        runModules(data);
+      }
+    });
+  } catch (e) {
+    console.error("[ITD-EXT] Ошибка перехватчика:", e);
+  }
   function runModules(data) {
+    if (!data) {
+      console.warn("[ITD-EXT] Попытка запуска модулей без данных профиля.");
+      return;
+    }
     modules.forEach((mod) => {
       if (Settings.get(mod.id, mod.default)) {
         try {
           mod.init(data);
         } catch (e) {
-          console.error(`[ITD-EXT] Module ${mod.id} error:`, e);
+          console.error(`[ITD-EXT] Ошибка модуля ${mod.id}:`, e);
         }
       }
     });
@@ -192,11 +205,15 @@
   }
   function handleConfigChange(id, enabled) {
     var _a;
-    console.log(`[ITD-EXT] Toggle: ${id} -> ${enabled}`);
+    console.log(`[ITD-EXT] Переключатель: ${id} -> ${enabled}`);
     if (!enabled) {
       if (id === "show_posts_count") (_a = document.getElementById("itdex-posts-count")) == null ? void 0 : _a.remove();
     } else {
-      runModules(profileData);
+      if (profileData) {
+        runModules(profileData);
+      } else {
+        console.log("[ITD-EXT] Переключатель включен, ожидание данных профиля...");
+      }
     }
   }
   const bodyCheck = setInterval(() => {
@@ -204,15 +221,20 @@
       clearInterval(bodyCheck);
       initUI();
     }
-  }, 50);
+  }, 100);
   function initUI() {
-    createModal(modules, handleConfigChange);
-    injectExtendedButton();
-    const observer = new MutationObserver(() => {
+    try {
+      createModal(modules, handleConfigChange);
       injectExtendedButton();
-      if (profileData) runModules(profileData);
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+      const observer = new MutationObserver(() => {
+        injectExtendedButton();
+        if (profileData) runModules(profileData);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      console.log("[ITD-EXT] Интерфейс готов!");
+    } catch (e) {
+      console.error("[ITD-EXT] Ошибка инициализации интерфейса:", e);
+    }
   }
 
 })();

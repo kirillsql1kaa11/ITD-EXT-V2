@@ -16,23 +16,32 @@ const CONFIG = {
     id: 'itdex-main-button'
 };
 
-console.log('[ITD-EXT] v1.1.7: Script starting');
+console.log('[ITD-EXT] v1.1.9: Запуск скрипта...');
 
-initInterceptor((event, data) => {
-    if (event === 'profile_loaded') {
-        console.log('[ITD-EXT] API Profile catch!', data.username);
-        profileData = data;
-        runModules(data);
-    }
-});
+try {
+    initInterceptor((event, data) => {
+        if (event === 'profile_loaded') {
+            console.log('[ITD-EXT] Профиль успешно перехвачен:', data.username);
+            profileData = data;
+            runModules(data);
+        }
+    });
+} catch (e) {
+    console.error('[ITD-EXT] Ошибка перехватчика:', e);
+}
 
 function runModules(data) {
+    if (!data) {
+        console.warn('[ITD-EXT] Попытка запуска модулей без данных профиля.');
+        return;
+    }
+
     modules.forEach(mod => {
         if (Settings.get(mod.id, mod.default)) {
             try {
                 mod.init(data);
             } catch (e) {
-                console.error(`[ITD-EXT] Module ${mod.id} error:`, e);
+                console.error(`[ITD-EXT] Ошибка модуля ${mod.id}:`, e);
             }
         }
     });
@@ -50,7 +59,7 @@ function injectExtendedButton() {
     const btn = template.cloneNode(true);
     btn.id = CONFIG.id;
     btn.href = 'javascript:void(0)';
-    btn.classList.remove('VPqB7n6W', 'ZtAKIgsJ'); // Убираем активные классы сайта
+    btn.classList.remove('VPqB7n6W', 'ZtAKIgsJ');
     btn.classList.add('itdex-nav-item');
 
     const icon = btn.querySelector(CONFIG.selectors.iconContainer);
@@ -67,12 +76,15 @@ function injectExtendedButton() {
 }
 
 function handleConfigChange(id, enabled) {
-    console.log(`[ITD-EXT] Toggle: ${id} -> ${enabled}`);
+    console.log(`[ITD-EXT] Переключатель: ${id} -> ${enabled}`);
     if (!enabled) {
         if (id === 'show_posts_count') document.getElementById('itdex-posts-count')?.remove();
     } else {
-        // Даже если данных нет, пробуем запустить (вдруг они уже в глобальном стейте)
-        runModules(profileData);
+        if (profileData) {
+            runModules(profileData);
+        } else {
+            console.log('[ITD-EXT] Переключатель включен, ожидание данных профиля...');
+        }
     }
 }
 
@@ -81,16 +93,21 @@ const bodyCheck = setInterval(() => {
         clearInterval(bodyCheck);
         initUI();
     }
-}, 50);
+}, 100);
 
 function initUI() {
-    createModal(modules, handleConfigChange);
-    injectExtendedButton();
-
-    const observer = new MutationObserver(() => {
+    try {
+        createModal(modules, handleConfigChange);
         injectExtendedButton();
-        if (profileData) runModules(profileData);
-    });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+        const observer = new MutationObserver(() => {
+            injectExtendedButton();
+            if (profileData) runModules(profileData);
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+        console.log('[ITD-EXT] Интерфейс готов!');
+    } catch (e) {
+        console.error('[ITD-EXT] Ошибка инициализации интерфейса:', e);
+    }
 }
