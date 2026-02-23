@@ -9,7 +9,6 @@
     --itdex-accent-hover: #93c5fd;
 }
 
-/* Наша кнопка в навигации */
 .itdex-nav-item {
     cursor: pointer;
     transition: background-color 0.2s;
