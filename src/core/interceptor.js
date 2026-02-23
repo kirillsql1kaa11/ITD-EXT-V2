@@ -1,5 +1,4 @@
 export function initInterceptor(callback) {
-    // --- Перехват FETCH ---
     const originFetch = window.fetch;
     window.fetch = async (...args) => {
         const response = await originFetch(...args);
@@ -8,8 +7,10 @@ export function initInterceptor(callback) {
         else if (args[0] instanceof Request) url = args[0].url;
         else if (args[0] instanceof URL) url = args[0].href;
 
-        // DEBUG: Раскомментируй строку ниже, если хочешь видеть ВООБЩЕ ВСЕ запросы
-        // console.log('[ITD-DEBUG] Fetch:', url);
+        // ВРЕМЕННЫЙ ЛОГ: покажет все запросы в консоли
+        if (url.includes('/api/')) {
+            console.log('[ITD-DEBUG] API Fetch:', url);
+        }
 
         if (url.includes('/api/users/') && !url.includes('/posts') && !url.includes('/media')) {
             const clone = response.clone();
@@ -20,11 +21,15 @@ export function initInterceptor(callback) {
         return response;
     };
 
-    // --- Перехват XMLHttpRequest ---
     const rawOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function () {
         this.addEventListener('load', function () {
             const url = this.responseURL;
+
+            if (url.includes('/api/')) {
+                console.log('[ITD-DEBUG] API XHR:', url);
+            }
+
             if (url.includes('/api/users/') && !url.includes('/posts') && !url.includes('/media')) {
                 try {
                     const data = JSON.parse(this.responseText);

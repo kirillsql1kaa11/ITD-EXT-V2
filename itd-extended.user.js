@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ITD Extended Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1.5
+// @version      1.1.6
 // @author       Kirill
 // @description  Extended client for ITD social network with modular system
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
@@ -27,6 +27,9 @@
       if (typeof args[0] === "string") url = args[0];
       else if (args[0] instanceof Request) url = args[0].url;
       else if (args[0] instanceof URL) url = args[0].href;
+      if (url.includes("/api/")) {
+        console.log("[ITD-DEBUG] API Fetch:", url);
+      }
       if (url.includes("/api/users/") && !url.includes("/posts") && !url.includes("/media")) {
         const clone = response.clone();
         clone.json().then((data) => {
@@ -40,6 +43,9 @@
     XMLHttpRequest.prototype.open = function() {
       this.addEventListener("load", function() {
         const url = this.responseURL;
+        if (url.includes("/api/")) {
+          console.log("[ITD-DEBUG] API XHR:", url);
+        }
         if (url.includes("/api/users/") && !url.includes("/posts") && !url.includes("/media")) {
           try {
             const data = JSON.parse(this.responseText);
