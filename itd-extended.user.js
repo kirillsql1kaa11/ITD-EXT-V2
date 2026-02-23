@@ -54,11 +54,12 @@
     `);
 
     const CONFIG = {
+        // Поддержка обоих типов навигации (Mobile / PC)
         selectors: {
-            nav: '.JOIWgkha',
-            navItem: '.Vxc0MjRf',
-            iconContainer: '.Yi-2DSIb',
-            label: '.iQtUV16G'
+            nav: '.JOIWgkha, .JGhUMn6Z',
+            navItem: '.Vxc0MjRf, .GNnsM0Nx',
+            iconContainer: '.Yi-2DSIb, .TAGBLFdY',
+            label: '.iQtUV16G' // На ПК класса нет, обработаем отдельно
         },
         id: 'itdex-main-button'
     };
@@ -79,21 +80,29 @@
         const extButton = template.cloneNode(true);
         extButton.id = CONFIG.id;
         extButton.href = '#itd-extended';
+        extButton.classList.remove('VPqB7n6W', 'ZtAKIgsJ'); // Убираем активные стили
         extButton.classList.add('itdex-nav-item');
 
         const iconSpan = extButton.querySelector(CONFIG.selectors.iconContainer);
-        const labelSpan = extButton.querySelector(CONFIG.selectors.label);
+
+        // Логика поиска текста для ПК (где нет класса)
+        let labelSpan = extButton.querySelector(CONFIG.selectors.label);
+        if (!labelSpan) {
+            labelSpan = extButton.querySelectorAll('span:not(' + CONFIG.selectors.iconContainer + ')')[0]
+                || extButton.querySelector('span:last-child');
+        }
 
         if (iconSpan) iconSpan.innerHTML = UI.icon;
         if (labelSpan) labelSpan.innerText = 'Extended';
 
         extButton.onclick = (e) => {
             e.preventDefault();
-            alert('ITD Extended Client - v' + GM_info.script.version + '\nBy Kirill');
+            const version = typeof GM_info !== 'undefined' ? GM_info.script.version : '1.0.1';
+            alert('ITD Extended Client - v' + version + '\nBy Kirill');
         };
 
         nav.appendChild(extButton);
-        console.log('ITD Extended: Injected');
+        console.log('ITD Extended: Injected into ' + (nav.classList.contains('JGhUMn6Z') ? 'PC' : 'Mobile') + ' menu');
     }
 
     const observer = new MutationObserver(() => injectExtendedButton());
