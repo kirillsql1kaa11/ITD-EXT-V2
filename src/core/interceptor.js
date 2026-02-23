@@ -3,12 +3,18 @@ export function initInterceptor(callback) {
     window.fetch = async (...args) => {
         const response = await originFetch(...args);
 
-        // Проверяем, что это запрос профиля
-        if (args[0] && args[0].includes('/api/users/') && !args[0].includes('/posts')) {
+        let url = "";
+        if (typeof args[0] === 'string') url = args[0];
+        else if (args[0] instanceof Request) url = args[0].url;
+        else if (args[0] instanceof URL) url = args[0].href;
+
+        if (url.includes('/api/users/') && !url.includes('/posts') && !url.includes('/media')) {
             const clone = response.clone();
             clone.json().then(data => {
-                callback('profile_loaded', data);
-            });
+                if (data && data.username) {
+                    callback('profile_loaded', data);
+                }
+            }).catch(() => { });
         }
 
         return response;

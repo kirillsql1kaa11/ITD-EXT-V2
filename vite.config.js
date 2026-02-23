@@ -8,7 +8,7 @@ export default defineConfig({
             userscript: {
                 name: 'ITD Extended Client',
                 namespace: 'http://tampermonkey.net/',
-                version: '1.1.0',
+                version: '1.1.1',
                 author: 'Kirill',
                 match: [
                     'https://итд.com/*',

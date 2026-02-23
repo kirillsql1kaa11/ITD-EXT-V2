@@ -16,7 +16,8 @@ const CONFIG = {
     id: 'itdex-main-button'
 };
 
-function runModules(trigger, data) {
+function runModules(data) {
+    if (!data) return;
     modules.forEach(mod => {
         if (Settings.get(mod.id, mod.default)) {
             mod.init(data);
@@ -51,13 +52,13 @@ function handleConfigChange(id, enabled) {
     if (!enabled) {
         if (id === 'show_posts_count') document.getElementById('itdex-posts-count')?.remove();
     } else {
-        runModules('profile_loaded', profileData);
+        runModules(profileData);
     }
 }
 
 const observer = new MutationObserver(() => {
     injectExtendedButton();
-    runModules('dom_changed', profileData);
+    runModules(profileData);
 });
 
 function init() {
@@ -67,7 +68,7 @@ function init() {
     initInterceptor((event, data) => {
         if (event === 'profile_loaded') {
             profileData = data;
-            runModules(event, data);
+            runModules(data);
         }
     });
 

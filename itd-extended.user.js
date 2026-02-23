@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ITD Extended Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1.0
+// @version      1.1.1
 // @author       Kirill
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
 // @updateURL    https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
@@ -21,10 +21,17 @@
     const originFetch = window.fetch;
     window.fetch = async (...args) => {
       const response = await originFetch(...args);
-      if (args[0] && args[0].includes("/api/users/") && !args[0].includes("/posts")) {
+      let url = "";
+      if (typeof args[0] === "string") url = args[0];
+      else if (args[0] instanceof Request) url = args[0].url;
+      else if (args[0] instanceof URL) url = args[0].href;
+      if (url.includes("/api/users/") && !url.includes("/posts") && !url.includes("/media")) {
         const clone = response.clone();
         clone.json().then((data) => {
-          callback("profile_loaded", data);
+          if (data && data.username) {
+            callback("profile_loaded", data);
+          }
+        }).catch(() => {
         });
       }
       return response;
@@ -44,16 +51,17 @@
     description: "Показывает количество постов в профиле",
     default: true,
     init(data) {
-      if (!data || !data.postsCount) return;
+      if (!data || data.postsCount === void 0) return;
       if (document.getElementById("itdex-posts-count")) return;
-      const statContainers = document.querySelectorAll(".hSN99swS");
-      if (statContainers.length === 0) return;
-      const lastStat = statContainers[statContainers.length - 1];
+      const stats = document.querySelectorAll(".hSN99swS");
+      if (stats.length === 0) return;
+      const lastStat = stats[stats.length - 1];
+      if (!lastStat.parentNode) return;
       const postsStat = lastStat.cloneNode(true);
       postsStat.id = "itdex-posts-count";
       postsStat.classList.add("wD-vYWrg");
-      const countSpan = postsStat.querySelector("span:first-child");
-      const labelSpan = postsStat.querySelector("span:last-child");
+      const countSpan = postsStat.querySelector("span:first-child") || postsStat.querySelector(".LIXEFTYA");
+      const labelSpan = postsStat.querySelector("span:last-child") || postsStat.querySelector(".XHEEbVAb");
       if (countSpan) countSpan.innerText = data.postsCount;
       if (labelSpan) labelSpan.innerText = "постов";
       lastStat.parentNode.appendChild(postsStat);
@@ -122,7 +130,8 @@
     },
     id: "itdex-main-button"
   };
-  function runModules(trigger, data) {
+  function runModules(data) {
+    if (!data) return;
     modules.forEach((mod) => {
       if (Settings.get(mod.id, mod.default)) {
         mod.init(data);
@@ -155,12 +164,12 @@
     if (!enabled) {
       if (id === "show_posts_count") (_a = document.getElementById("itdex-posts-count")) == null ? void 0 : _a.remove();
     } else {
-      runModules("profile_loaded", profileData);
+      runModules(profileData);
     }
   }
   const observer = new MutationObserver(() => {
     injectExtendedButton();
-    runModules("dom_changed", profileData);
+    runModules(profileData);
   });
   function init() {
     createModal(modules, handleConfigChange);
@@ -168,7 +177,7 @@
     initInterceptor((event, data) => {
       if (event === "profile_loaded") {
         profileData = data;
-        runModules(event, data);
+        runModules(data);
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });

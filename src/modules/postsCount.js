@@ -5,20 +5,23 @@ export default {
     default: true,
 
     init(data) {
-        if (!data || !data.postsCount) return;
+        if (!data || data.postsCount === undefined) return;
         if (document.getElementById('itdex-posts-count')) return;
 
-        const statContainers = document.querySelectorAll('.hSN99swS');
-        if (statContainers.length === 0) return;
+        // Ищем контейнер с подписками (может быть несколько на странице)
+        const stats = document.querySelectorAll('.hSN99swS');
+        if (stats.length === 0) return;
 
-        const lastStat = statContainers[statContainers.length - 1];
+        // Вставляем после последнего найденного элемента статистики
+        const lastStat = stats[stats.length - 1];
+        if (!lastStat.parentNode) return;
+
         const postsStat = lastStat.cloneNode(true);
-
         postsStat.id = 'itdex-posts-count';
         postsStat.classList.add('wD-vYWrg');
 
-        const countSpan = postsStat.querySelector('span:first-child');
-        const labelSpan = postsStat.querySelector('span:last-child');
+        const countSpan = postsStat.querySelector('span:first-child') || postsStat.querySelector('.LIXEFTYA');
+        const labelSpan = postsStat.querySelector('span:last-child') || postsStat.querySelector('.XHEEbVAb');
 
         if (countSpan) countSpan.innerText = data.postsCount;
         if (labelSpan) labelSpan.innerText = 'постов';
