@@ -3,6 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.1.1
 // @author       Kirill
+// @description  Extended client for ITD social network with modular system
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
 // @updateURL    https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
 // @match        https://итд.com/*
@@ -10,6 +11,7 @@
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @run-at       document-start
 // ==/UserScript==
 
 (t=>{if(typeof GM_addStyle=="function"){GM_addStyle(t);return}const e=document.createElement("style");e.textContent=t,document.head.append(e)})(' :root{--itdex-bg-primary: #151518;--itdex-bg-secondary: #1a1a1a;--itdex-bg-tertiary: #2a2a2a;--itdex-text-primary: #f5f5f5;--itdex-text-secondary: rgba(255, 255, 255, .5);--itdex-accent-primary: #0080FF;--itdex-modal-shadow: rgba(0, 0, 0, .5)}.itdex-nav-item{cursor:pointer;transition:background-color .2s}.itdex-nav-item:hover{background-color:var(--itdex-bg-tertiary)}.itdex-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#000000b3;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .2s}.itdex-modal-overlay.active{opacity:1;pointer-events:all}.itdex-modal-container{background:var(--itdex-bg-secondary);width:100%;max-width:450px;border-radius:16px;border:1px solid var(--itdex-bg-tertiary);box-shadow:0 10px 40px #00000080;transform:scale(.95);transition:transform .2s}.itdex-modal-overlay.active .itdex-modal-container{transform:scale(1)}.itdex-modal-header{padding:18px 24px;border-bottom:1px solid var(--itdex-bg-tertiary);display:flex;align-items:center;justify-content:space-between}.itdex-modal-title{font-size:18px;font-weight:700;color:var(--itdex-text-primary)}.itdex-modal-close{cursor:pointer;color:var(--itdex-text-secondary)}.itdex-modal-body{padding:12px 0}.itdex-setting-item{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;transition:background .2s}.itdex-setting-item:hover{background:#ffffff08}.itdex-setting-info{display:flex;flex-direction:column}.itdex-setting-name{font-size:15px;font-weight:500;color:var(--itdex-text-primary)}.itdex-setting-desc{font-size:12px;color:var(--itdex-text-secondary);margin-top:2px}.itdex-switch{position:relative;display:inline-block;width:40px;height:20px}.itdex-switch input{opacity:0;width:0;height:0}.itdex-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--itdex-bg-tertiary);transition:.4s;border-radius:20px}.itdex-slider:before{position:absolute;content:"";height:16px;width:16px;left:2px;bottom:2px;background-color:#fff;transition:.4s;border-radius:50%}input:checked+.itdex-slider{background-color:var(--itdex-accent-primary)}input:checked+.itdex-slider:before{transform:translate(20px)} ');

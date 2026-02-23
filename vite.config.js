@@ -9,6 +9,7 @@ export default defineConfig({
                 name: 'ITD Extended Client',
                 namespace: 'http://tampermonkey.net/',
                 version: '1.1.1',
+                description: 'Extended client for ITD social network with modular system',
                 author: 'Kirill',
                 match: [
                     'https://итд.com/*',
@@ -19,11 +20,11 @@ export default defineConfig({
                     'GM_getValue',
                     'GM_setValue'
                 ],
+                'run-at': 'document-start',
                 updateURL: 'https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js',
                 downloadURL: 'https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js',
             },
             build: {
-                // Жестко задаем имя файла, чтобы Vite не добавлял имя проекта
                 fileName: 'itd-extended.user.js'
             }
         }),
