@@ -8,7 +8,7 @@ export default defineConfig({
             userscript: {
                 name: 'ITD Extended Client',
                 namespace: 'http://tampermonkey.net/',
-                version: '1.1.4',
+                version: '1.1.5',
                 description: 'Extended client for ITD social network with modular system',
                 author: 'Kirill',
                 match: [
@@ -31,6 +31,7 @@ export default defineConfig({
     ],
     build: {
         outDir: './',
-        emptyOutDir: false
+        emptyOutDir: false,
+        minify: false // ВЫКЛЮЧАЕМ МИНИФИКАЦИЮ ДЛЯ ДЕБАГА
     }
 });

@@ -16,11 +16,11 @@ const CONFIG = {
     id: 'itdex-main-button'
 };
 
-console.log('[ITD-EXT] Script starting (run-at: document-start)');
+console.log('[ITD-EXT] v1.1.5: Script starting');
 
 initInterceptor((event, data) => {
     if (event === 'profile_loaded') {
-        console.log('[ITD-EXT] Profile data intercepted:', data.username, data.postsCount);
+        console.log('[ITD-EXT] Data matched!', data.username, 'Posts:', data.postsCount);
         profileData = data;
         runModules(data);
     }
@@ -41,10 +41,20 @@ function runModules(data) {
 
 function injectExtendedButton() {
     if (!document.body || document.getElementById(CONFIG.id)) return;
+
     const nav = document.querySelector(CONFIG.selectors.nav);
-    if (!nav) return;
+    if (!nav) {
+        // console.warn('[ITD-EXT] Nav menu not found yet...');
+        return;
+    }
+
     const template = nav.querySelector(CONFIG.selectors.navItem);
-    if (!template) return;
+    if (!template) {
+        console.warn('[ITD-EXT] Nav item template not found in nav!');
+        return;
+    }
+
+    console.log('[ITD-EXT] Injecting Extended button...');
 
     const btn = template.cloneNode(true);
     btn.id = CONFIG.id;
@@ -58,11 +68,16 @@ function injectExtendedButton() {
     if (icon) icon.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
     if (label) label.innerText = 'Extended';
 
-    btn.onclick = (e) => { e.preventDefault(); openModal(); };
+    btn.onclick = (e) => {
+        e.preventDefault();
+        console.log('[ITD-EXT] Extended button clicked!');
+        openModal();
+    };
     nav.appendChild(btn);
 }
 
 function handleConfigChange(id, enabled) {
+    console.log(`[ITD-EXT] Setting changed: ${id} = ${enabled}`);
     if (!enabled) {
         if (id === 'show_posts_count') document.getElementById('itdex-posts-count')?.remove();
     } else {
@@ -70,16 +85,15 @@ function handleConfigChange(id, enabled) {
     }
 }
 
-// 2. Ждем появления body для запуска UI логики
 const bodyCheck = setInterval(() => {
     if (document.body) {
         clearInterval(bodyCheck);
-        console.log('[ITD-EXT] Body found, initializing UI...');
         initUI();
     }
 }, 50);
 
 function initUI() {
+    console.log('[ITD-EXT] Initializing UI components...');
     createModal(modules, handleConfigChange);
     injectExtendedButton();
 

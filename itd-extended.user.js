@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ITD Extended Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1.4
+// @version      1.1.5
 // @author       Kirill
 // @description  Extended client for ITD social network with modular system
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
@@ -144,10 +144,10 @@
     },
     id: "itdex-main-button"
   };
-  console.log("[ITD-EXT] Script starting (run-at: document-start)");
+  console.log("[ITD-EXT] v1.1.5: Script starting");
   initInterceptor((event, data) => {
     if (event === "profile_loaded") {
-      console.log("[ITD-EXT] Profile data intercepted:", data.username, data.postsCount);
+      console.log("[ITD-EXT] Data matched!", data.username, "Posts:", data.postsCount);
       profileData = data;
       runModules(data);
     }
@@ -167,9 +167,15 @@
   function injectExtendedButton() {
     if (!document.body || document.getElementById(CONFIG.id)) return;
     const nav = document.querySelector(CONFIG.selectors.nav);
-    if (!nav) return;
+    if (!nav) {
+      return;
+    }
     const template = nav.querySelector(CONFIG.selectors.navItem);
-    if (!template) return;
+    if (!template) {
+      console.warn("[ITD-EXT] Nav item template not found in nav!");
+      return;
+    }
+    console.log("[ITD-EXT] Injecting Extended button...");
     const btn = template.cloneNode(true);
     btn.id = CONFIG.id;
     btn.href = "javascript:void(0)";
@@ -181,12 +187,14 @@
     if (label) label.innerText = "Extended";
     btn.onclick = (e) => {
       e.preventDefault();
+      console.log("[ITD-EXT] Extended button clicked!");
       openModal();
     };
     nav.appendChild(btn);
   }
   function handleConfigChange(id, enabled) {
     var _a;
+    console.log(`[ITD-EXT] Setting changed: ${id} = ${enabled}`);
     if (!enabled) {
       if (id === "show_posts_count") (_a = document.getElementById("itdex-posts-count")) == null ? void 0 : _a.remove();
     } else {
@@ -196,11 +204,11 @@
   const bodyCheck = setInterval(() => {
     if (document.body) {
       clearInterval(bodyCheck);
-      console.log("[ITD-EXT] Body found, initializing UI...");
       initUI();
     }
   }, 50);
   function initUI() {
+    console.log("[ITD-EXT] Initializing UI components...");
     createModal(modules, handleConfigChange);
     injectExtendedButton();
     const observer = new MutationObserver(() => {
