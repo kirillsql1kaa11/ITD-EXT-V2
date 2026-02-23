@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ITD Extended Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1.2
+// @version      1.1.3
 // @author       Kirill
 // @description  Extended client for ITD social network with modular system
 // @downloadURL  https://github.com/kirillsql1kaa11/ITD-EXT-V2/raw/refs/heads/main/itd-extended.user.js
@@ -132,16 +132,28 @@
     },
     id: "itdex-main-button"
   };
+  console.log("[ITD-EXT] Script starting (run-at: document-start)");
+  initInterceptor((event, data) => {
+    if (event === "profile_loaded") {
+      console.log("[ITD-EXT] Profile data intercepted:", data.username, data.postsCount);
+      profileData = data;
+      runModules(data);
+    }
+  });
   function runModules(data) {
-    if (!data) return;
+    if (!data || !document.body) return;
     modules.forEach((mod) => {
       if (Settings.get(mod.id, mod.default)) {
-        mod.init(data);
+        try {
+          mod.init(data);
+        } catch (e) {
+          console.error(`[ITD-EXT] Error in module ${mod.id}:`, e);
+        }
       }
     });
   }
   function injectExtendedButton() {
-    if (document.getElementById(CONFIG.id)) return;
+    if (!document.body || document.getElementById(CONFIG.id)) return;
     const nav = document.querySelector(CONFIG.selectors.nav);
     if (!nav) return;
     const template = nav.querySelector(CONFIG.selectors.navItem);
@@ -169,21 +181,21 @@
       runModules(profileData);
     }
   }
-  const observer = new MutationObserver(() => {
-    injectExtendedButton();
-    runModules(profileData);
-  });
-  function init() {
+  const bodyCheck = setInterval(() => {
+    if (document.body) {
+      clearInterval(bodyCheck);
+      console.log("[ITD-EXT] Body found, initializing UI...");
+      initUI();
+    }
+  }, 50);
+  function initUI() {
     createModal(modules, handleConfigChange);
     injectExtendedButton();
-    initInterceptor((event, data) => {
-      if (event === "profile_loaded") {
-        profileData = data;
-        runModules(data);
-      }
+    const observer = new MutationObserver(() => {
+      injectExtendedButton();
+      if (profileData) runModules(profileData);
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }
-  init();
 
 })();
